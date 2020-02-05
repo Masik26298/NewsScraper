@@ -18,7 +18,7 @@ class SiteScraper(metaclass=ABCMeta):
         tut_by_articles = tut_by.get_articles()
         cnn_com = ScraperFactory.get_scraper('TUTScraper')
         cnn_com_articles = cnn_com.get_articles()
-        factory_news = [tut_by_articles + cnn_com_articles]
+        factory_news = tut_by_articles + cnn_com_articles
         return jsonify({'news': factory_news})
 
 
@@ -78,7 +78,7 @@ class CNNScraper(SiteScraper):
         return news_cnn_com
 
 def get_cnn_news():
-    cnn_com = ScraperFactory.get_scraper('TUTScraper')
+    cnn_com = ScraperFactory.get_scraper('CNNScraper')
     cnncom_articles = cnn_com.get_articles()
     return jsonify({'news': cnncom_articles})
 
