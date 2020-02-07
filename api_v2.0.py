@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 import requests
 from bs4 import BeautifulSoup as bs
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractstaticmethod
+
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -9,27 +10,27 @@ app.config['JSON_AS_ASCII'] = False
 
 @app.route('/news', methods=['GET'])
 class SiteScraper(metaclass=ABCMeta):
-    @abstractmethod
-    def articles(self):
-       pass
+    @abstractstaticmethod
+    def articles():
+        """Создание абстрактного метода"""
 
-    def get_all_news(self):
-        tut_by = ScraperFactory.get_scraper('TUTScraper')
-        tut_by_articles = tut_by.get_articles()
-        cnn_com = ScraperFactory.get_scraper('TUTScraper')
-        cnn_com_articles = cnn_com.get_articles()
-        factory_news = tut_by_articles + cnn_com_articles
-        return jsonify({'news': factory_news})
+
+def get_all_news():
+    tut_by = ScraperFactory.get_scraper('TUTScraper')
+    tut_by_articles = tut_by.get_articles()
+    cnn_com = ScraperFactory.get_scraper('CNNScraper')
+    cnn_com_articles = cnn_com.get_articles()
+    factory_news = tut_by_articles + cnn_com_articles
+    return jsonify({'news': factory_news})
 
 
 @app.route('/news/tut.by', methods=['GET'])
 class TUTScraper(SiteScraper):
     def __init__(self):
-        super().__init__()
         self.name = 'tut.by'
         self.url = 'https://www.tut.by'
 
-    def articles_tutby(self):
+    def articles(self):
         bs = html(self.url)
         tut_news = bs.find('div', id='latest').find_all('a', class_='entry__link io-block-link')
         news_tut_by = []
@@ -56,11 +57,10 @@ def get_tutby_news():
 @app.route('/news/cnn.com', methods=['GET'])
 class CNNScraper(SiteScraper):
     def __init__(self):
-        super().__init__()
         self.name = 'cnn.com'
         self.url = 'https://edition.cnn.com/world'
 
-    def articles_cnncom(self):
+    def articles(self):
         bs = html(self.url)
         cnn_news = bs.find('div', id='latest').find_all('span', class_='cd__headline-text')
         news_cnn_com = []
@@ -77,10 +77,24 @@ class CNNScraper(SiteScraper):
                                     })
         return news_cnn_com
 
+
 def get_cnn_news():
     cnn_com = ScraperFactory.get_scraper('CNNScraper')
     cnncom_articles = cnn_com.get_articles()
     return jsonify({'news': cnncom_articles})
+
+
+class ScraperFactory():
+    @staticmethod
+    def scraper(news):
+        try:
+            if news == 'TUTScraper':
+                return TUTScraper()
+            if news == 'CNNScraper':
+                return CNNScraper()
+            raise AssertionError('Scraper is not defined')
+        except AssertionError:
+            print('AssertionError')
 
 
 def html(url):
